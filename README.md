@@ -9,6 +9,10 @@
 - 1x [Ventilateur 12V 60mm](https://www.aliexpress.com/item/32712190499.html)
 - 1x [Capteur température/humidité](https://www.aliexpress.com/item/1005001726751347.html)
 
+# Librairies nécessaires
+- [Adafruit SSD1306](https://github.com/adafruit/Adafruit_SSD1306)
+- [Adafruit AHTX0](https://github.com/adafruit/Adafruit_AHTX0)
+
 
 # Câblage
 ![Câblage](images/Wiring.png)
