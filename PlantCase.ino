@@ -11,6 +11,14 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 
+#define FAN_PIN 2
+
+#define TEMP_MIN_THRESHOLD 20
+#define TEMP_MAX_THRESHOLD 24
+
+#define HUM_MIN_THRESHOLD 65
+#define HUM_MAX_THRESHOLD 75
+
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 // The pins for I2C are defined by the Wire-library. 
 // On an arduino UNO:       A4(SDA), A5(SCL)
@@ -37,6 +45,9 @@ void setup()
     while (1) delay(10);
   }
   
+  pinMode(FAN_PIN, OUTPUT);
+  digitalWrite(FAN_PIN, LOW);
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() 
@@ -51,8 +62,19 @@ void loop()
   dtostrf(temp.temperature, 4, 2, tmp_temperature);
   dtostrf(humidity.relative_humidity, 4, 2, tmp_humidity);
 
+  if(temp.temperature > TEMP_MAX_THRESHOLD || humidity.relative_humidity > HUM_MAX_THRESHOLD)
+  {
+    digitalWrite(FAN_PIN, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+  if(temp.temperature < TEMP_MIN_THRESHOLD || humidity.relative_humidity < HUM_MIN_THRESHOLD)
+  {
+    digitalWrite(FAN_PIN, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
   char txt[50];
-  sprintf(txt, "T: %s\nH: %s", tmp_temperature, tmp_humidity);
+  sprintf(txt, "T:%s\nH:%s", tmp_temperature, tmp_humidity);
   Serial.println(txt);
   displayTextOnOLED(txt);
 
