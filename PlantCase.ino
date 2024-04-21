@@ -8,16 +8,19 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_AHTX0.h>
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+// Dimensions de l'écran OLED
+#define SCREEN_WIDTH 128 
+#define SCREEN_HEIGHT 32 
 
 #define FAN_PIN 2
 
-#define TEMP_MIN_THRESHOLD 20
-#define TEMP_MAX_THRESHOLD 24
+// Configuration température
+#define TEMPERATURE_C_TARGET 25
+#define TEMPERATURE_C_ALLOWED_DELTA 0.5
 
-#define HUM_MIN_THRESHOLD 65
-#define HUM_MAX_THRESHOLD 75
+// Configuration humidité
+#define HUMIDITY_PERCENT_TARGET 70
+#define HUMIDITY_PERCENT_ALLOWED_DELTA 3
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 // The pins for I2C are defined by the Wire-library. 
@@ -28,6 +31,7 @@
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+// Capteur d'humidité/température
 Adafruit_AHTX0 aht;
 
 void setup()
@@ -35,12 +39,14 @@ void setup()
   Serial.begin(115200);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
+  {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
 
-  if (! aht.begin()) {
+  if(!aht.begin())
+  {
     Serial.println("Could not find AHT? Check wiring");
     while (1) delay(10);
   }
@@ -53,6 +59,7 @@ void setup()
 void loop() 
 {
   sensors_event_t humidity, temp;
+
   // Récupération des infos du capteur
   aht.getEvent(&humidity, &temp);
 
@@ -62,14 +69,20 @@ void loop()
   dtostrf(temp.temperature, 4, 2, tmp_temperature);
   dtostrf(humidity.relative_humidity, 4, 2, tmp_humidity);
 
-  if(temp.temperature > TEMP_MAX_THRESHOLD || humidity.relative_humidity > HUM_MAX_THRESHOLD)
+  // Si température trop élevée
+  if(temp.temperature > TEMPERATURE_C_TARGET+TEMPERATURE_C_ALLOWED_DELTA)
   {
+    // Mise en route du ventilateur
     digitalWrite(FAN_PIN, HIGH);
+    // On allume la LED de l'Arduino
     digitalWrite(LED_BUILTIN, HIGH);
   }
-  if(temp.temperature < TEMP_MIN_THRESHOLD || humidity.relative_humidity < HUM_MIN_THRESHOLD)
+  // Quand température à nouveau bonne
+  if(temp.temperature < TEMPERATURE_C_TARGET-TEMPERATURE_C_ALLOWED_DELTA)
   {
+    // Arrêt du ventilateur
     digitalWrite(FAN_PIN, LOW);
+    // On éteint la LED de l'Arduino
     digitalWrite(LED_BUILTIN, LOW);
   }
 
@@ -81,6 +94,8 @@ void loop()
   delay(5000);
 }
 
+
+// Affiche le texte passé sur l'écran
 void displayTextOnOLED(String text) 
 {
   display.clearDisplay();
@@ -91,6 +106,6 @@ void displayTextOnOLED(String text)
   {
     display.write(char(text[i]));
   }
-  display.display();  // Show initial text
+  display.display();  
 }
 
